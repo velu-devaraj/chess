@@ -31,14 +31,38 @@ dependencies:
   flutter:
     sdk: flutter
 
+  shared_preferences: ^2.3.2 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  image: ^4.2.0
+  json_serializable: ^6.8.0
 
 dev_dependencies:
+
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.13.1"
+  build_runner: ^2.4.11
+  build_test: ^2.2.2
+  build_web_compilers: ^4.0.10
+  
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/chess.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/icon/chess.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/icon/chess.png"
+    icon_size: 48 # min:48, max:256, default: 48
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -52,11 +76,25 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
+  assets:
+    - assets/white-pawn.png
+    - assets/white-rook.png
+    - assets/white-knight.png
+    - assets/white-bishop.png
+    - assets/white-queen.png
+    - assets/white-king.png
+    - assets/black-pawn.png
+    - assets/black-rook.png
+    - assets/black-knight.png
+    - assets/black-bishop.png
+    - assets/black-queen.png
+    - assets/black-king.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
