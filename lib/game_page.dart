@@ -36,6 +36,7 @@ class ChessWidgetState extends State<ChessPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
         appBar: AppBar(
           title: Text("${game.player1} vs ${game.player2}"),
         ),
@@ -221,7 +222,7 @@ class ChessGridPainter extends ChangeNotifier implements CustomPainter {
     final paintWhite = Paint()
       ..style = PaintingStyle.fill
       ..strokeWidth = 4.0
-      ..color = Colors.lightGreenAccent;
+      ..color = Colors.lightGreenAccent.shade100;
 
     final paintBlack = Paint()
       ..style = PaintingStyle.fill

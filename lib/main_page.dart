@@ -5,11 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'chess_board.dart';
 
-
 import 'game.dart';
 
 typedef ModelGetter = Game Function();
-typedef ModelSetter = void Function(Game g);
+typedef ModelSetter = void Function(Game? g);
 
 class MainWidget extends StatelessWidget {
   String? player1;
@@ -18,48 +17,83 @@ class MainWidget extends StatelessWidget {
 
   Game? game;
 
-  void setGame(Game g) {
+  void setGame(Game? g) {
     this.game = g;
   }
 
   MainWidget({super.key}) {}
 
+  InputDecoration decoration = InputDecoration(
+    contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 15.0),
+    border: new OutlineInputBorder(borderRadius: BorderRadius.only()),
+   
+  );
+
+  final ButtonStyle style = ElevatedButton.styleFrom(
+      padding: EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 15.0),
+      backgroundColor: Colors.blueAccent,
+      foregroundColor: Colors.black,
+      textStyle: const TextStyle(fontSize: 20),
+      shape: const LinearBorder(
+        side: BorderSide(color: Colors.blue),
+        top: LinearBorderEdge(),
+        bottom: LinearBorderEdge(),
+        start: LinearBorderEdge(),
+        end: LinearBorderEdge(),
+      ),
+      fixedSize: const Size(200, 60));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: [
-        const Text("First Player's Name"),
-        TextField(
-          onChanged: (value) {
-            player1 = value;
-          },
-          onSubmitted: (value) {
-            player1 = value;
-          },
-        ),
-        const Text("Second Player's Name"),
-        TextField(
-          onChanged: (value) {
-            player2 = value;
-          },
-          onSubmitted: (value) {
-            player2 = value;
-          },
-        ),
-        GameListWidget(setGame),
-        ElevatedButton(
-            onPressed: () {
-              Game? g;
-              if (null != this.game) {
-                g = game;
-              } else if (null != player1 && null != player2) {
-                g = Game(player1!, player2!, ChessBoard.startPosFEN);
-              }
-              Navigator.pushNamed(context, "/game",
-                  //   arguments: [player1, player2]);
-                  arguments: g);
-            },
-            child: const Text("Start"))
+     
+      body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: const Text("First Player's Name")),
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: TextField(
+              
+              decoration: decoration,
+              onChanged: (value) {
+                player1 = value;
+              },
+              onSubmitted: (value) {
+                player1 = value;
+              },
+            )),
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: const Text("Second Player's Name")),
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: TextField(
+              decoration: decoration,
+              onChanged: (value) {
+                player2 = value;
+              },
+              onSubmitted: (value) {
+                player2 = value;
+              },
+            )),
+        Padding(padding: EdgeInsets.all(5.0), child: GameListWidget(setGame)),
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: ElevatedButton(
+                style: style,
+                onPressed: () {
+                  Game? g;
+                  if (null != this.game) {
+                    g = game;
+                  } else if (null != player1 && null != player2) {
+                    g = Game(player1!, player2!, ChessBoard.startPosFEN);
+                  } else {
+                    return;
+                  }
+                  Navigator.pushNamed(context, "/game", arguments: g);
+                },
+                child: const Text("Start")))
       ]),
     );
   }
@@ -112,6 +146,7 @@ class GameListWidgetState extends State<StatefulWidget> {
   }
 
   List<Game>? games;
+  int selectedIndex = -1;
 
   DataTable gamesWidgets(List<Game>? games) {
     List<DataRow> rows = List.empty(growable: true);
@@ -131,20 +166,49 @@ class GameListWidgetState extends State<StatefulWidget> {
 
     for (int i = 0; i < games.length; i++) {
       DataRow row = DataRow(
- 
+          key: UniqueKey(),
           color: WidgetStateColor.resolveWith((states) {
+            /*
             if (states.isEmpty) {
               return Colors.lightBlueAccent;
-            } else if (states.first == WidgetState.pressed) {
-              return Colors.green;
+            }
+            */
+            if (i == selectedIndex) {
+              return Colors.lightGreenAccent.shade100;
             } else {
-              return Colors.lightBlueAccent;
+              return Colors.lightBlueAccent.shade100;
             }
           }),
+          onSelectChanged: (value) {
+            GameListWidget glw = this.widget as GameListWidget;
+            setState(() {
+              if (!value!) {
+                selectedIndex = -1;
+                gameIndex = -1;
+                // game = null;
+                glw.setModel(games[i]);
+                return;
+              }
+              selectedIndex = i;
+              gameIndex = i;
+
+              glw.setModel(games[i]);
+            });
+
+            /// print(value.toString());
+          },
           cells: [
-            DataCell(Text(games[i].player1), onDoubleTap: () {
+            DataCell(Text(key: UniqueKey(), games[i].player1), onDoubleTap: () {
               gameIndex = i;
               GameListWidget glw = this.widget as GameListWidget;
+              setState(() {
+                if (-1 == selectedIndex) {
+                  selectedIndex = i;
+                } else {
+                  selectedIndex = -1;
+                }
+              });
+
               glw.setModel(games[i]);
             }),
             DataCell(Text(games[i].player2), onDoubleTap: () {
@@ -163,9 +227,10 @@ class GameListWidgetState extends State<StatefulWidget> {
     }
 
     DataTable table = DataTable(
+      showCheckboxColumn: true,
       columns: cols,
       rows: rows,
-      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue),
+      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.amberAccent.shade100),
       dataRowColor: WidgetStateColor.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.selected)) {
           return Theme.of(context).colorScheme.primary.withOpacity(0.08);

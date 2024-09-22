@@ -4,7 +4,6 @@ import 'game_router.dart';
 import 'main_page.dart';
 import 'piece_images.dart';
 
-
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
