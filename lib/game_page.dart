@@ -1,19 +1,23 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:ui' as ui;
 
-
+import 'package:chess/human_player.dart';
+import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'piece_images.dart';
 import 'chess_board.dart';
 import 'game.dart';
+import 'player.dart';
+import 'src/com/uci/api/move.dart';
 
 const double rSize = 40.0;
 GlobalKey? chessPageKey;
 
 class ChessPage extends StatefulWidget {
- 
   dynamic game;
 
   ChessPage(this.game, {super.key}) {
@@ -25,18 +29,36 @@ class ChessPage extends StatefulWidget {
 }
 
 class ChessWidgetState extends State<ChessPage> {
-
   Game game;
 
   ChessWidgetState(this.game);
 
+  @override
+  void initState() {
+    super.initState();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      makeFirstMove();
+    });
+  }
+
+  void makeFirstMove() {
+    if (game.player1 is UCIClient && game.player1.playingWhite) {
+      UCIClient p = game.player1 as UCIClient;
+      p.setFEN(game.fen);
+      p.play();
+    } else if (game.player2 is UCIClient && game.player2.playingWhite) {
+      UCIClient p = game.player2 as UCIClient;
+      p.setFEN(game.fen);
+      p.play();
+    }
+  }
 // 4k2r/6r1/8/8/8/8/3R4/R3K3 w Qk - 0 1.
 // The "Qk" in the third field indicates that White may castle queenside and Black may castle kingside.
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
         appBar: AppBar(
           title: Text("${game.player1} vs ${game.player2}"),
         ),
@@ -64,10 +86,8 @@ class GridWidgetState extends State<GridWidget> {
   final GlobalKey gestureDetectorKey = GlobalKey();
   final GlobalKey customPaintKey = GlobalKey();
   late final ChessGridPainter chessGridPainter;
-
-
   ChessBoard chessBoard =
-      ChessBoard.fromFEN( (chessPageKey?.currentWidget as ChessPage).game.fen);
+      ChessBoard.fromFEN((chessPageKey?.currentWidget as ChessPage).game.fen);
 
   ChessBoard getChessBoard() {
     return chessBoard;
@@ -77,7 +97,6 @@ class GridWidgetState extends State<GridWidget> {
   static late List<Widget> blackPieces;
   static bool arePromotionPiecesLoaded = false;
   loadPromotionChoices() {
-
     if (!arePromotionPiecesLoaded) {
       whitesPieces = List<Widget>.empty(growable: true);
       blackPieces = List<Widget>.empty(growable: true);
@@ -106,7 +125,47 @@ class GridWidgetState extends State<GridWidget> {
     }
   }
 
-  GridWidgetState() {}
+  void setChessBoard(Game g) {
+    if (g.player1 is UCIClient) {
+      UCIClient p = g.player1 as UCIClient;
+      p.setChessBoard(chessBoard);
+    }
+    if (g.player2 is UCIClient) {
+      UCIClient p = g.player2 as UCIClient;
+      p.setChessBoard(chessBoard);
+    }
+  }
+
+  GridWidgetState() {
+    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
+
+    Game g = cp.game;
+    setChessBoard(g);
+    g.player1.stream.listen((onData) {
+      setState(() {
+        MoveSteps ms = moveStep(onData);
+        if (ms == MoveSteps.moved) {
+          changeTurn(g);
+          g.player2.play();
+        }
+      });
+    });
+
+    g.player2.stream.listen((onData) {
+      setState(() {
+        MoveSteps ms = moveStep(onData);
+        if (ms == MoveSteps.moved) {
+          changeTurn(g);
+          g.player1.play();
+        }
+      });
+    });
+  }
+
+  void changeTurn(Game g) {
+    g.player1.isTurn = !g.player1.isTurn;
+    g.player2.isTurn = !g.player2.isTurn;
+  }
 
   (int, int) localPositionToCellID(Offset offset, Size? canvasSize) {
     double renderedXSize = rSize * 8;
@@ -125,6 +184,14 @@ class GridWidgetState extends State<GridWidget> {
     Game g = cp.game;
     g.fen = chessBoard.toFEN();
 
+    if (g.player1 is UCIClient) {
+      UCIClient p = g.player1 as UCIClient;
+      p.setFEN(g.fen);
+    }
+    if (g.player2 is UCIClient) {
+      UCIClient p = g.player2 as UCIClient;
+      p.setFEN(g.fen);
+    }
     prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> m = g.toJson();
     String s = jsonEncode(g);
@@ -138,33 +205,43 @@ class GridWidgetState extends State<GridWidget> {
     return GestureDetector(
         key: gestureDetectorKey,
         onDoubleTapDown: (details) {
-          
           int col = details.localPosition.dx.round();
           int row = details.localPosition.dy.round();
 
           var rec = localPositionToCellID(
               details.localPosition, gestureDetectorKey.currentContext!.size);
-         
-          setState(() {
-            MoveSteps valid = chessBoard.setSelectedSquare(rec);
-            if (null != chessBoard.boardExternalState.whitePromotionSquare ||
-                null != chessBoard.boardExternalState.blackPromotionSquare) {
-              bool displayWhitePieces =
-                  null != chessBoard.boardExternalState.whitePromotionSquare;
-              loadPromotionChoices();
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) => AlertDialog(
-                      title: const Text('Select Promotion'),
-                      
-                      actions:
-                          displayWhitePieces ? whitesPieces : blackPieces));
+
+          ChessPage cp = chessPageKey?.currentWidget as ChessPage;
+
+          Game g = cp.game;
+
+          if (g.player1.isTurn) {
+            if (g.player1 is Humanplayer) {
+              Move m = Move();
+              m.playerIndex = 0;
+              m.square = rec;
+              g.player1.addData(m);
+            } else {
+              String fen = chessBoard.toFEN();
+              UCIClient player = g.player1 as UCIClient;
+              player.setFEN(fen);
+              player.setChessBoard(chessBoard);
             }
-            if (valid == MoveSteps.moved) {
-              storeGame();
+          }
+
+          if (g.player2.isTurn) {
+            if (g.player2 is Humanplayer) {
+              Move m = Move();
+              m.playerIndex = 1;
+              m.square = rec;
+              g.player2.addData(m);
+            } else {
+              String fen = chessBoard.toFEN();
+              UCIClient player = g.player2 as UCIClient;
+              player.setFEN(fen);
+              player.setChessBoard(chessBoard);
             }
-          });
-    
+          }
         },
         child: CustomPaint(
           key: customPaintKey,
@@ -172,6 +249,36 @@ class GridWidgetState extends State<GridWidget> {
               key: GlobalKey(),
               getChessBoard: getChessBoard), /* child : const GridWidget() */
         ));
+  }
+
+  MoveSteps moveStep(Move move) {
+    // if it player1's turn and is on this device select square.
+    // or player2's turn and is on this device select square.
+    // else ignore.
+    // don't call  chessBoard.setSelectedSquare(rec); directly
+    // show visually geometrical reach areas
+    //
+    (int, int) rec = move.square;
+    MoveSteps valid = chessBoard.setSelectedSquare(rec);
+    if (null != chessBoard.boardExternalState.whitePromotionSquare ||
+        null != chessBoard.boardExternalState.blackPromotionSquare) {
+      bool displayWhitePieces =
+          null != chessBoard.boardExternalState.whitePromotionSquare;
+      loadPromotionChoices();
+
+      if (-1 == move.promotoinPiece) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+                title: const Text('Select Promotion'),
+                actions: displayWhitePieces ? whitesPieces : blackPieces));
+      }
+    } else {}
+    if (valid == MoveSteps.moved) {
+      storeGame();
+    }
+
+    return valid;
   }
 }
 
@@ -186,7 +293,6 @@ class ChessGridPainter extends ChangeNotifier implements CustomPainter {
     customPainterKey = key;
   }
 
- 
   void paintSelection(Canvas canvas, Size size) {
     ChessBoard cb = getChessBoard();
     if (null == cb.selectedSquare) {

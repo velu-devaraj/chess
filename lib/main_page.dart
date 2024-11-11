@@ -1,18 +1,34 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:chess/human_player.dart';
+import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'chess_board.dart';
 
 import 'game.dart';
+import 'player.dart';
 
 typedef ModelGetter = Game Function();
 typedef ModelSetter = void Function(Game? g);
 
-class MainWidget extends StatelessWidget {
-  String? player1;
-  String? player2;
+class MainWidget extends StatefulWidget {
+  MainWidget({super.key}) {}
+
+  @override
+  State<MainWidget> createState() => _MainWidgetState();
+}
+
+class _MainWidgetState extends State<MainWidget> {
+  bool isEngine1 = false;
+  bool isEngine2 = true;
+
+  bool player1White = true;
+  String? player1Name;
+
+  String? player2Name;
+
   ModelGetter? getGame;
 
   Game? game;
@@ -21,12 +37,9 @@ class MainWidget extends StatelessWidget {
     this.game = g;
   }
 
-  MainWidget({super.key}) {}
-
   InputDecoration decoration = InputDecoration(
     contentPadding: EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 15.0),
     border: new OutlineInputBorder(borderRadius: BorderRadius.only()),
-   
   );
 
   final ButtonStyle style = ElevatedButton.styleFrom(
@@ -46,35 +59,82 @@ class MainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
             padding: EdgeInsets.all(5.0),
-            child: const Text("First Player's Name")),
+            child: Row(children: [
+              Expanded(child: const Text("First Player's Name")),
+              Expanded(
+                  child: LabeledCheckbox(
+                label: "Engine Play",
+                value: isEngine1,
+                onChanged: (bool value) {
+                  setState(() {
+                    isEngine1 = value;
+                  });
+                },
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              )),
+              Expanded(
+                  child: LabeledCheckbox(
+                label: "White",
+                value: player1White,
+                onChanged: (bool value) {
+                  setState(() {
+                    player1White = value;
+                  });
+                },
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              ))
+            ])),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: TextField(
-              
               decoration: decoration,
               onChanged: (value) {
-                player1 = value;
+                player1Name = value;
               },
               onSubmitted: (value) {
-                player1 = value;
+                player1Name = value;
               },
             )),
         Padding(
-            padding: EdgeInsets.all(5.0),
-            child: const Text("Second Player's Name")),
+          padding: EdgeInsets.all(5.0),
+          child: Row(children: [
+            Expanded(child: const Text("Second Player's Name")),
+            Expanded(
+                  child: LabeledCheckbox(
+                label: "Engine Play",
+                value: isEngine2,
+                onChanged: (bool value) {
+                  setState(() {
+                    isEngine2 = value;
+                  });
+                },
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              )),
+               Expanded(
+                  child: LabeledCheckbox(
+                label: "White",
+                value: !player1White,
+                onChanged: (bool value) {
+                  setState(() {
+                    player1White = value;
+                  });
+                },
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              ))           
+          ]),
+        ),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: TextField(
               decoration: decoration,
               onChanged: (value) {
-                player2 = value;
+                player2Name = value;
               },
               onSubmitted: (value) {
-                player2 = value;
+                player2Name = value;
               },
             )),
         Padding(padding: EdgeInsets.all(5.0), child: GameListWidget(setGame)),
@@ -86,8 +146,25 @@ class MainWidget extends StatelessWidget {
                   Game? g;
                   if (null != this.game) {
                     g = game;
-                  } else if (null != player1 && null != player2) {
-                    g = Game(player1!, player2!, ChessBoard.startPosFEN);
+                  } else if (null != player1Name && null != player2Name) {
+                    Player player1;
+                    Player player2;
+
+                    if(isEngine1){
+                        player1 = UCIClient( "UCIClient", player1Name,player1White,player1White);
+                        
+                    }else{
+                        player1 = Humanplayer( "Humanplayer", player1Name,player1White,player1White);
+                    }
+                    if(isEngine2){
+                        player2 = UCIClient("UCIClient", player2Name,!player1White,!player1White);
+                    }else{
+                        player2 = Humanplayer( "Humanplayer", player2Name,!player1White,!player1White);
+                    }
+                   // g = Game(player1Name!, player2Name!, ChessBoard.startPosFEN);
+                    g = Game(player1, player2, ChessBoard.startPosFEN);
+
+
                   } else {
                     return;
                   }
@@ -111,6 +188,18 @@ class GameListWidget extends StatefulWidget {
 }
 
 class GameListWidgetState extends State<StatefulWidget> {
+
+  Player deserialize(Map<String, dynamic> json) {
+    switch (json['type'] as String) {
+      case 'UCIClient':
+        return UCIClient.fromJson(json);
+      case 'Humanplayer':
+        //return Humanplayer.fromJson(json);
+      default:
+        throw Exception('Unknown type');
+    }
+  }
+
   int gameIndex = -1;
 
   Game? getGame() {
@@ -198,7 +287,7 @@ class GameListWidgetState extends State<StatefulWidget> {
             /// print(value.toString());
           },
           cells: [
-            DataCell(Text(key: UniqueKey(), games[i].player1), onDoubleTap: () {
+            DataCell(Text(key: UniqueKey(), games[i].player1.name), onDoubleTap: () {
               gameIndex = i;
               GameListWidget glw = this.widget as GameListWidget;
               setState(() {
@@ -211,7 +300,7 @@ class GameListWidgetState extends State<StatefulWidget> {
 
               glw.setModel(games[i]);
             }),
-            DataCell(Text(games[i].player2), onDoubleTap: () {
+            DataCell(Text(games[i].player2.name), onDoubleTap: () {
               gameIndex = i;
               GameListWidget glw = this.widget as GameListWidget;
               glw.setModel(games[i]);
@@ -230,7 +319,8 @@ class GameListWidgetState extends State<StatefulWidget> {
       showCheckboxColumn: true,
       columns: cols,
       rows: rows,
-      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.amberAccent.shade100),
+      headingRowColor:
+          WidgetStateColor.resolveWith((states) => Colors.amberAccent.shade100),
       dataRowColor: WidgetStateColor.resolveWith((Set<WidgetState> states) {
         if (states.contains(WidgetState.selected)) {
           return Theme.of(context).colorScheme.primary.withOpacity(0.08);
@@ -245,5 +335,43 @@ class GameListWidgetState extends State<StatefulWidget> {
   @override
   Widget build(BuildContext context) {
     return gamesWidgets(games);
+  }
+}
+
+class LabeledCheckbox extends StatelessWidget {
+  const LabeledCheckbox({
+    super.key,
+    required this.label,
+    required this.padding,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final EdgeInsets padding;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        onChanged(!value);
+      },
+      child: Padding(
+        padding: padding,
+        child: Row(
+          children: <Widget>[
+            Expanded(child: Text(label)),
+            Checkbox(
+              value: value,
+              onChanged: (bool? newValue) {
+                onChanged(newValue!);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

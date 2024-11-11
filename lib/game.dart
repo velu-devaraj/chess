@@ -2,12 +2,14 @@
 import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'player.dart';
+
 part 'game.g.dart'; 
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Game{
-  final String player1;
-  final String player2;
+  final Player player1;
+  final Player player2;
   late DateTime dateTime;
 
   late String fen;
@@ -19,7 +21,7 @@ class Game{
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
   String getKey(){
-    return "${player1}|${player1}|$dateTime";
+    return "${player1.name}|${player2.name}|$dateTime";
   }
 
 }

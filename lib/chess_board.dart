@@ -44,8 +44,8 @@ class BoardExternalState {
     fullMoveCount = bes.fullMoveCount;
   }
 }
-enum MoveSteps { selected, moved, invalid }
 
+enum MoveSteps { selected, moved, invalid }
 
 class ChessBoard {
   static String startPosFEN =
@@ -223,26 +223,23 @@ class ChessBoard {
     }
     pos += 1; // escape space
     int c = 0;
-    while(c < 4){
+    while (c < 4) {
       if (fen[pos] == "K") {
         boardExternalState.rook07Moved = false;
         pos++;
-      }
-      else if (fen[pos] == "Q") {
+      } else if (fen[pos] == "Q") {
         boardExternalState.rook00Moved = false;
         pos++;
-      }
-      else if (fen[pos] == "k") {
+      } else if (fen[pos] == "k") {
         boardExternalState.rook70Moved = false;
         pos++;
-      }
-      else if (fen[pos] == "q") {
+      } else if (fen[pos] == "q") {
         boardExternalState.rook77Moved = false;
         pos++;
-      }else if (fen[pos] == "-") {
+      } else if (fen[pos] == "-") {
         pos++;
         break;
-      }else{
+      } else {
         break; // space
       }
       c++;
@@ -309,7 +306,9 @@ class ChessBoard {
             sb.write(blanks);
           }
           blanks = 0;
-          sb.write("/");
+          if (0 != row) {
+            sb.write("/");
+          }
         }
       }
     }
@@ -342,8 +341,8 @@ class ChessBoard {
     if (boardExternalState.enPassantCaptureSquare != null) {
       sb.write(boardExternalState.enPassantCaptureSquare!.$1);
       sb.write(columnCode[boardExternalState.enPassantCaptureSquare!.$2]);
-    }else{
-       sb.write("-");
+    } else {
+      sb.write("-");
     }
     sb.write(" ");
     sb.write(boardExternalState.halfMoveCount);
@@ -886,6 +885,13 @@ class ChessBoard {
 
   int castleDetected = -1;
 
+  bool isKingInSquare((int row, int col) rec) {
+    if (squares[rec.$1][rec.$2] == 5 || squares[rec.$1][rec.$2] == 11) {
+      return true;
+    }
+    return false;
+  }
+
   bool isValidCastleMove(
       (int row, int col) from, (int row, int col) to, bool isWhiteToMove) {
     if (isWhiteToMove) {
@@ -1049,7 +1055,7 @@ class ChessBoard {
       squares[0][0] = 100;
       castleDetected = -1;
       boardExternalState.whiteKingMoved = true;
-	    boardExternalState.rook00Moved = true;
+      boardExternalState.rook00Moved = true;
       return;
     }
     if (castleDetected == 7) {
@@ -1059,7 +1065,7 @@ class ChessBoard {
       squares[0][7] = 100;
       castleDetected = -1;
       boardExternalState.whiteKingMoved = true;
-	    boardExternalState.rook07Moved = true;      
+      boardExternalState.rook07Moved = true;
       return;
     }
     if (castleDetected == 70) {
@@ -1069,7 +1075,7 @@ class ChessBoard {
       squares[7][0] = 100;
       castleDetected = -1;
       boardExternalState.blackKingMoved = true;
-	   boardExternalState.rook70Moved = true;      
+      boardExternalState.rook70Moved = true;
       return;
     }
     if (castleDetected == 77) {
@@ -1079,7 +1085,7 @@ class ChessBoard {
       squares[7][7] = 100;
       castleDetected = -1;
       boardExternalState.blackKingMoved = true;
-	   boardExternalState.rook77Moved = true;      
+      boardExternalState.rook77Moved = true;
       return;
     }
   }
