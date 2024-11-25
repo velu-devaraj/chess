@@ -21,7 +21,7 @@ class Game{
   Map<String, dynamic> toJson() => _$GameToJson(this);
 
   String getKey(){
-    return "${player1.name}|${player2.name}|$dateTime";
+    return "Game:${player1.name}|${player2.name}|$dateTime";
   }
 
 }

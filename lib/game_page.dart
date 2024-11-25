@@ -43,11 +43,11 @@ class ChessWidgetState extends State<ChessPage> {
   }
 
   void makeFirstMove() {
-    if (game.player1 is UCIClient && game.player1.playingWhite) {
+    if (game.player1 is UCIClient && game.player1.isTurn) { // TODO play on turn?
       UCIClient p = game.player1 as UCIClient;
       p.setFEN(game.fen);
       p.play();
-    } else if (game.player2 is UCIClient && game.player2.playingWhite) {
+    } else if (game.player2 is UCIClient && game.player2.isTurn) {
       UCIClient p = game.player2 as UCIClient;
       p.setFEN(game.fen);
       p.play();
@@ -60,7 +60,7 @@ class ChessWidgetState extends State<ChessPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("${game.player1} vs ${game.player2}"),
+          title: Text("${game.player1.name} vs ${game.player2.name}"),
         ),
         body: Center(
           child: SizedBox(

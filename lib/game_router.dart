@@ -1,7 +1,7 @@
+import 'package:chess/src/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'game_page.dart';
 import 'main_page.dart';
-
 
 class GameRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -9,7 +9,12 @@ class GameRouter {
       case '/':
         return MaterialPageRoute(builder: (_) => MainWidget());
       case '/game':
-        return MaterialPageRoute(builder: (_) => ChessPage(settings.arguments, key : GlobalKey() ));
+        return MaterialPageRoute(
+            builder: (_) => ChessPage(settings.arguments, key: GlobalKey()));
+      case '/settings':
+        return MaterialPageRoute(
+            builder: (_) => SettingsPage(key: GlobalKey()));
+
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(

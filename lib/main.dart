@@ -1,3 +1,5 @@
+import 'package:chess/src/app_data_store.dart';
+import 'package:chess/src/server_config.dart';
 import 'package:flutter/material.dart';
 
 import 'game_router.dart';
@@ -8,8 +10,14 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   MyApp({super.key}) {
-    Pieceimages pis = Pieceimages();
     WidgetsFlutterBinding.ensureInitialized();
+    ServerConfig sc;
+    AppDataStore appDataStore = AppDataStore.getInstance();
+    appDataStore.loadJsonData().then((onValue) {
+      sc = onValue;
+    });
+    Pieceimages pis = Pieceimages();
+
     pis.loadImages();
   }
 

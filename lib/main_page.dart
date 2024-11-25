@@ -9,9 +9,12 @@ import 'chess_board.dart';
 
 import 'game.dart';
 import 'player.dart';
+import 'src/server_config.dart';
 
 typedef ModelGetter = Game Function();
 typedef ModelSetter = void Function(Game? g);
+typedef ServerConfigGetter = ServerConfig Function();
+typedef ServerConfigSetter = void Function(ServerConfig? g);
 
 class MainWidget extends StatefulWidget {
   MainWidget({super.key}) {}
@@ -32,9 +35,14 @@ class _MainWidgetState extends State<MainWidget> {
   ModelGetter? getGame;
 
   Game? game;
+  ServerConfig? serverConfig;
 
   void setGame(Game? g) {
     this.game = g;
+  }
+
+  void setServerConfig(ServerConfig? serverConfig) {
+    this.serverConfig = serverConfig;
   }
 
   InputDecoration decoration = InputDecoration(
@@ -60,6 +68,15 @@ class _MainWidgetState extends State<MainWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: EdgeInsets.all(5.0),
+          child: ElevatedButton(
+              style: style,
+              onPressed: () {
+                Navigator.pushNamed(context, "/settings");
+              },
+              child: const Text("Settings")),
+        ),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: Row(children: [
@@ -103,27 +120,27 @@ class _MainWidgetState extends State<MainWidget> {
           child: Row(children: [
             Expanded(child: const Text("Second Player's Name")),
             Expanded(
-                  child: LabeledCheckbox(
-                label: "Engine Play",
-                value: isEngine2,
-                onChanged: (bool value) {
-                  setState(() {
-                    isEngine2 = value;
-                  });
-                },
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              )),
-               Expanded(
-                  child: LabeledCheckbox(
-                label: "White",
-                value: !player1White,
-                onChanged: (bool value) {
-                  setState(() {
-                    player1White = value;
-                  });
-                },
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              ))           
+                child: LabeledCheckbox(
+              label: "Engine Play",
+              value: isEngine2,
+              onChanged: (bool value) {
+                setState(() {
+                  isEngine2 = value;
+                });
+              },
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            )),
+            Expanded(
+                child: LabeledCheckbox(
+              label: "White",
+              value: !player1White,
+              onChanged: (bool value) {
+                setState(() {
+                  player1White = value;
+                });
+              },
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            ))
           ]),
         ),
         Padding(
@@ -137,7 +154,9 @@ class _MainWidgetState extends State<MainWidget> {
                 player2Name = value;
               },
             )),
-        Padding(padding: EdgeInsets.all(5.0), child: GameListWidget(setGame)),
+        Padding(
+            padding: EdgeInsets.all(5.0),
+            child: GameListWidget(setGame, setServerConfig)),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: ElevatedButton(
@@ -150,21 +169,22 @@ class _MainWidgetState extends State<MainWidget> {
                     Player player1;
                     Player player2;
 
-                    if(isEngine1){
-                        player1 = UCIClient( "UCIClient", player1Name,player1White,player1White);
-                        
-                    }else{
-                        player1 = Humanplayer( "Humanplayer", player1Name,player1White,player1White);
+                    if (isEngine1) {
+                      player1 = UCIClient(
+                          "UCIClient", player1Name, player1White, player1White);
+                    } else {
+                      player1 = Humanplayer("Humanplayer", player1Name,
+                          player1White, player1White);
                     }
-                    if(isEngine2){
-                        player2 = UCIClient("UCIClient", player2Name,!player1White,!player1White);
-                    }else{
-                        player2 = Humanplayer( "Humanplayer", player2Name,!player1White,!player1White);
+                    if (isEngine2) {
+                      player2 = UCIClient("UCIClient", player2Name,
+                          !player1White, !player1White);
+                    } else {
+                      player2 = Humanplayer("Humanplayer", player2Name,
+                          !player1White, !player1White);
                     }
-                   // g = Game(player1Name!, player2Name!, ChessBoard.startPosFEN);
+                    // g = Game(player1Name!, player2Name!, ChessBoard.startPosFEN);
                     g = Game(player1, player2, ChessBoard.startPosFEN);
-
-
                   } else {
                     return;
                   }
@@ -178,8 +198,9 @@ class _MainWidgetState extends State<MainWidget> {
 
 class GameListWidget extends StatefulWidget {
   ModelSetter setModel;
+  ServerConfigSetter setServerConfig;
 
-  GameListWidget(this.setModel);
+  GameListWidget(this.setModel, this.setServerConfig);
   @override
   State<StatefulWidget> createState() {
     GameListWidgetState glws = GameListWidgetState();
@@ -188,13 +209,12 @@ class GameListWidget extends StatefulWidget {
 }
 
 class GameListWidgetState extends State<StatefulWidget> {
-
   Player deserialize(Map<String, dynamic> json) {
     switch (json['type'] as String) {
       case 'UCIClient':
         return UCIClient.fromJson(json);
       case 'Humanplayer':
-        //return Humanplayer.fromJson(json);
+      //return Humanplayer.fromJson(json);
       default:
         throw Exception('Unknown type');
     }
@@ -226,15 +246,26 @@ class GameListWidgetState extends State<StatefulWidget> {
         String key = spc.keys.elementAt(i);
         String json = spc.get(key) as String;
         dynamic map = jsonDecode(json);
-        Game g = Game.fromJson(map);
-        games!.add(g);
+        if (key.startsWith("flutter.ServerConfig")) {
+          serverConfig = ServerConfig.fromJson(map);
+        } else {
+          Game g = Game.fromJson(map);
+          games!.add(g);
+        }
         i++;
       }
+      if (null == serverConfig) {
+        serverConfig = ServerConfig();
+      }
+      GameListWidget glw = this.widget as GameListWidget;
+      glw.setServerConfig(serverConfig);
       setState(() {});
     });
   }
 
   List<Game>? games;
+  ServerConfig? serverConfig;
+
   int selectedIndex = -1;
 
   DataTable gamesWidgets(List<Game>? games) {
@@ -287,7 +318,8 @@ class GameListWidgetState extends State<StatefulWidget> {
             /// print(value.toString());
           },
           cells: [
-            DataCell(Text(key: UniqueKey(), games[i].player1.name), onDoubleTap: () {
+            DataCell(Text(key: UniqueKey(), games[i].player1.name),
+                onDoubleTap: () {
               gameIndex = i;
               GameListWidget glw = this.widget as GameListWidget;
               setState(() {

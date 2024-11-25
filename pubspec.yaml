@@ -85,6 +85,7 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/settings.json
     - assets/white-pawn.png
     - assets/white-rook.png
     - assets/white-knight.png

@@ -42,7 +42,7 @@ class Player {
       case 'Humanplayer':
         return Humanplayer.fromJson(json);
       case 'UCIClient':
-        return Humanplayer.fromJson(json); // UCIClient.fromJson(json);
+        return UCIClient.fromJson(json); // UCIClient.fromJson(json);
       default:
         throw Exception('Unknown type');
     }
