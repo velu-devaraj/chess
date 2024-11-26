@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Expanded(
               child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
-                  child: Expanded(child: preferencesTable(serverConfig!))),
+                  child: preferencesTable(serverConfig!)),
             ),
             
         Padding(
