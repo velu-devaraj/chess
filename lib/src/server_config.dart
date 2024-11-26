@@ -4,8 +4,10 @@ import 'package:json_annotation/json_annotation.dart';
 part 'server_config.g.dart';
 
 class PropertyKeys {
+  static final String uciServerScheme = "uci.server.scheme";
   static final String uciServerHost = "uci.server.host";
   static final String uciServerPort = "uci.server.port";
+  static final String uciServerBasePath = "uci.server.base.path";  
   static final String moveDelay = "move.delay";
   static final String selectionToMoveDelay = "selection.to.move.delay";
   static final String maxDepth = "max.depth";
@@ -18,8 +20,10 @@ class ServerConfig {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   List<String> propertyKeys = [
+    PropertyKeys.uciServerScheme,
     PropertyKeys.uciServerHost,
     PropertyKeys.uciServerPort,
+    PropertyKeys.uciServerBasePath,
     PropertyKeys.moveDelay,
     PropertyKeys.selectionToMoveDelay,
     PropertyKeys.maxDepth,

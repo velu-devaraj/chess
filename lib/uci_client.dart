@@ -23,14 +23,16 @@ class UCIClient extends Player {
       : super(type, name, playingWhite, isTurn) {
     ServerConfig? serverConfig = AppDataStore.getInstance().serverConfig;
 
-    String protocol = "http";
+    String scheme =  serverConfig!.properties[PropertyKeys.uciServerScheme]!.value![0];
     String port =
         serverConfig!.properties[PropertyKeys.uciServerPort]!.value![0];
     String host =
         serverConfig!.properties[PropertyKeys.uciServerHost]!.value![0];
+    String basePath =
+        serverConfig!.properties[PropertyKeys.uciServerBasePath]!.value![0];
 
     String engineURL =
-        protocol + "://" + host + ":" + port + "/uci-api-0.0.1-SNAPSHOT";
+        scheme + "://" + host + ":" + port + "/" + basePath ;
     BaseOptions? bo = BaseOptions(baseUrl: engineURL);
     movesApi = Openapi(dio: Dio(bo)).getMovesApi();
   }

@@ -1,6 +1,13 @@
 {
     "name": "ServerConfig",
     "properties": {
+        "uci.server.scheme": {
+            "name": "uci.server.scheme",
+            "value": [
+                "https"
+            ],
+            "type": "String"
+        },
         "uci.server.host": {
             "name": "uci.server.host",
             "value": [
@@ -12,6 +19,13 @@
             "name": "uci.server.port",
             "value": [
                 "8080"
+            ],
+            "type": "String"
+        },
+        "uci.server.basepath": {
+            "name": "uci.server.basepath",
+            "value": [
+                "uci-api-0.0.1-SNAPSHOT"
             ],
             "type": "String"
         },
