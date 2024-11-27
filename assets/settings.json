@@ -18,12 +18,12 @@
         "uci.server.port": {
             "name": "uci.server.port",
             "value": [
-                "8080"
+                "443"
             ],
             "type": "String"
         },
         "uci.server.basepath": {
-            "name": "uci.server.basepath",
+            "name": "uci.server.base.path",
             "value": [
                 "uci-api-0.0.1-SNAPSHOT"
             ],
