@@ -1,10 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
 
 import 'package:chess/human_player.dart';
+import 'package:chess/src/app_data_store.dart';
 import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'chess_board.dart';
 
 import 'game.dart';
@@ -156,7 +155,10 @@ class _MainWidgetState extends State<MainWidget> {
             )),
         Padding(
             padding: EdgeInsets.all(5.0),
-            child: GameListWidget(setGame, setServerConfig)),
+            //        child: GameListWidget(setGame, setServerConfig)),
+            child: ChangeNotifierProvider.value(
+                value: AppDataStore.getInstance().gamesList,
+                child: GameListWidget( setGame/*, setServerConfig */))),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: ElevatedButton(
@@ -198,9 +200,8 @@ class _MainWidgetState extends State<MainWidget> {
 
 class GameListWidget extends StatefulWidget {
   ModelSetter setModel;
-  ServerConfigSetter setServerConfig;
 
-  GameListWidget(this.setModel, this.setServerConfig);
+  GameListWidget( this.setModel);
   @override
   State<StatefulWidget> createState() {
     GameListWidgetState glws = GameListWidgetState();
@@ -209,16 +210,6 @@ class GameListWidget extends StatefulWidget {
 }
 
 class GameListWidgetState extends State<StatefulWidget> {
-  Player deserialize(Map<String, dynamic> json) {
-    switch (json['type'] as String) {
-      case 'UCIClient':
-        return UCIClient.fromJson(json);
-      case 'Humanplayer':
-      //return Humanplayer.fromJson(json);
-      default:
-        throw Exception('Unknown type');
-    }
-  }
 
   int gameIndex = -1;
 
@@ -226,49 +217,27 @@ class GameListWidgetState extends State<StatefulWidget> {
     if (gameIndex == -1) {
       return null;
     }
+
+    List<Game> games = AppDataStore.getInstance().gamesList.games;
     return games!.elementAt(gameIndex);
   }
 
   GameListWidgetState() {
-    SharedPreferencesWithCache spc;
-    Completer completer = Completer();
-    SharedPreferencesWithCache.create(
-            cacheOptions: SharedPreferencesWithCacheOptions())
-        .then((onValue) {
-      spc = onValue;
-      int len = spc.keys.length;
-      completer.complete(spc);
+    AppDataStore ads = AppDataStore.getInstance();
 
-      games = List.empty(growable: true);
+    serverConfig = ads.serverConfig;
 
-      int i = 0;
-      while (i < len) {
-        String key = spc.keys.elementAt(i);
-        String json = spc.get(key) as String;
-        dynamic map = jsonDecode(json);
-        if (key.startsWith("flutter.ServerConfig")) {
-          serverConfig = ServerConfig.fromJson(map);
-        } else {
-          Game g = Game.fromJson(map);
-          games!.add(g);
-        }
-        i++;
-      }
-      if (null == serverConfig) {
-        serverConfig = ServerConfig();
-      }
-      GameListWidget glw = this.widget as GameListWidget;
-      glw.setServerConfig(serverConfig);
-      setState(() {});
-    });
+    //GameListWidget glw = this.widget as GameListWidget;
+    //glw.setServerConfig(serverConfig);
+   // setState(() {});
   }
 
-  List<Game>? games;
+
   ServerConfig? serverConfig;
 
   int selectedIndex = -1;
 
-  DataTable gamesWidgets(List<Game>? games) {
+  DataTable gamesWidgets() {
     List<DataRow> rows = List.empty(growable: true);
 
     List<DataColumn> cols = [
@@ -278,21 +247,17 @@ class GameListWidgetState extends State<StatefulWidget> {
     ];
 
     //rows.add(row);
-    if (null == games) {
+    if (!AppDataStore.getInstance().gamesList.gamesListLoaded) {
       DataTable table = DataTable(columns: cols, rows: rows);
 
       return table;
     }
-
+    List<Game>? games = AppDataStore.getInstance().gamesList.games;
     for (int i = 0; i < games.length; i++) {
       DataRow row = DataRow(
           key: UniqueKey(),
           color: WidgetStateColor.resolveWith((states) {
-            /*
-            if (states.isEmpty) {
-              return Colors.lightBlueAccent;
-            }
-            */
+
             if (i == selectedIndex) {
               return Colors.lightGreenAccent.shade100;
             } else {
@@ -315,7 +280,7 @@ class GameListWidgetState extends State<StatefulWidget> {
               glw.setModel(games[i]);
             });
 
-            /// print(value.toString());
+           
           },
           cells: [
             DataCell(Text(key: UniqueKey(), games[i].player1.name),
@@ -366,7 +331,7 @@ class GameListWidgetState extends State<StatefulWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return gamesWidgets(games);
+    return gamesWidgets();
   }
 }
 

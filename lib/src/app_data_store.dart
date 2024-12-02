@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../game.dart';
 import 'server_config.dart';
+import 'games_list_notifier.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class AppDataStore {
@@ -17,13 +18,15 @@ class AppDataStore {
     _serverConfig = value;
   }
 
-  List<Game>? _games;
+ // List<Game>? _games;
 
-  List<Game>? get games => _games;
+ // List<Game>? get games => _games;
 
-  set games(List<Game>? value) {
-    _games = value;
-  }
+ // set games(List<Game>? value) {
+//    _games = value;
+//  }
+  
+  GamesListNotifier gamesList = GamesListNotifier();
 
   static AppDataStore? appDataStore;
 
@@ -45,7 +48,7 @@ class AppDataStore {
       int len = spc.keys.length;
       completer.complete(spc);
 
-      games = List.empty(growable: true);
+      List<Game> games = List.empty(growable: true);
 
       int i = 0;
       while (i < len) {
@@ -60,11 +63,21 @@ class AppDataStore {
         }
         i++;
       }
+
+      gamesList.games = games;
+
+      Completer<ServerConfig> completer2 = Completer<ServerConfig>();
       if (null == serverConfig) {
         loadJsonData().then((value) {
           serverConfig = value;
+          completer2.complete(value);
         });
       }
+      //dynamic temp = completer2.future as 
+      completer2.future.then( (value){
+        dynamic temp = value;
+        return temp;
+      } );
     });
   }
 
@@ -98,3 +111,5 @@ class AppDataStore {
     return await completer.future;
   }
 }
+
+

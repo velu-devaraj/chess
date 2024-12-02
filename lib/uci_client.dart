@@ -18,23 +18,32 @@ part 'uci_client.g.dart';
 class UCIClient extends Player {
   @JsonKey(includeFromJson: false, includeToJson: false)
   late MovesApi movesApi;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool initialized = false;
 
   UCIClient(type, name, playingWhite, isTurn)
       : super(type, name, playingWhite, isTurn) {
+        initialize();
+      }
+
+  void initialize() {
     ServerConfig? serverConfig = AppDataStore.getInstance().serverConfig;
 
-    String scheme =  serverConfig!.properties[PropertyKeys.uciServerScheme]!.value![0];
-    String port =
-        serverConfig!.properties[PropertyKeys.uciServerPort]!.value![0];
-    String host =
-        serverConfig!.properties[PropertyKeys.uciServerHost]!.value![0];
-    String basePath =
-        serverConfig!.properties[PropertyKeys.uciServerBasePath]!.value![0];
+    if (null != serverConfig) {
+      String scheme =
+          serverConfig!.properties[PropertyKeys.uciServerScheme]!.value![0];
+      String port =
+          serverConfig!.properties[PropertyKeys.uciServerPort]!.value![0];
+      String host =
+          serverConfig!.properties[PropertyKeys.uciServerHost]!.value![0];
+      String basePath =
+          serverConfig!.properties[PropertyKeys.uciServerBasePath]!.value![0];
 
-    String engineURL =
-        scheme + "://" + host + ":" + port + "/" + basePath ;
-    BaseOptions? bo = BaseOptions(baseUrl: engineURL);
-    movesApi = Openapi(dio: Dio(bo)).getMovesApi();
+      String engineURL = scheme + "://" + host + ":" + port + "/" + basePath;
+      BaseOptions? bo = BaseOptions(baseUrl: engineURL);
+      movesApi = Openapi(dio: Dio(bo)).getMovesApi();
+      initialized = true;
+    }
   }
 
   @override
@@ -58,6 +67,9 @@ class UCIClient extends Player {
 
   @override
   void play() {
+    if(!initialized){
+      initialize();
+    }
     ServerConfig? serverConfig = AppDataStore.getInstance().serverConfig;
 
     String maxDepth = serverConfig!.getPropertyAsString(PropertyKeys.maxDepth);

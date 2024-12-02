@@ -1,8 +1,7 @@
-import 'dart:convert';
-import 'dart:isolate';
 import 'dart:ui' as ui;
 
 import 'package:chess/human_player.dart';
+import 'package:chess/src/app_data_store.dart';
 import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'piece_images.dart';
 import 'chess_board.dart';
 import 'game.dart';
-import 'player.dart';
 import 'src/com/uci/api/move.dart';
 
 const double rSize = 40.0;
@@ -97,6 +95,7 @@ class GridWidgetState extends State<GridWidget> {
   static late List<Widget> blackPieces;
   static bool arePromotionPiecesLoaded = false;
   loadPromotionChoices() {
+    //if(mounted)
     if (!arePromotionPiecesLoaded) {
       whitesPieces = List<Widget>.empty(growable: true);
       blackPieces = List<Widget>.empty(growable: true);
@@ -192,10 +191,9 @@ class GridWidgetState extends State<GridWidget> {
       UCIClient p = g.player2 as UCIClient;
       p.setFEN(g.fen);
     }
-    prefs = await SharedPreferences.getInstance();
-    Map<String, dynamic> m = g.toJson();
-    String s = jsonEncode(g);
-    prefs!.setString(g.getKey(), s);
+
+    AppDataStore ads = AppDataStore.getInstance();
+    ads.storeObject(g);
   }
 
   SharedPreferences? prefs;

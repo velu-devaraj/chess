@@ -22,7 +22,7 @@
             ],
             "type": "String"
         },
-        "uci.server.basepath": {
+        "uci.server.base.path": {
             "name": "uci.server.base.path",
             "value": [
                 "uci-api-0.0.1-SNAPSHOT"
