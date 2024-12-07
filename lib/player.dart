@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:chess/src/com/uci/api/move.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'package:flutter/foundation.dart';
-
 import 'human_player.dart';
 import 'uci_client.dart';
 part 'player.g.dart';
@@ -16,19 +14,36 @@ class Player {
   String type;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
-  StreamController<Move> _controller = StreamController<Move>();
+  late StreamController<Move> _controller;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  late bool streamClosed = false;
 
   void addData(Move data) {
-    _controller.add(data);
-  } 
+    if (!_controller.isClosed) {
+      _controller.add(data);
+    } else {
+      // TODO
+    }
+  }
 
   void close() {
-    _controller.close();
+    if (!_controller.isClosed) {
+      _controller.close();
+    }
   }
 
   Stream<Move> get stream => _controller.stream;
 
-  Player(this.type, this.name, this.playingWhite, this.isTurn);
+  Player(this.type, this.name, this.playingWhite, this.isTurn) {
+    _controller = StreamController<Move>();
+  }
+
+  void resetStreamIfClosed() {
+    if (_controller.isClosed) {
+      _controller = StreamController<Move>();
+    }
+  }
 
   void selectSquare((int row, int col) rec) {}
 

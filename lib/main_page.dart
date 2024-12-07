@@ -1,6 +1,6 @@
-
 import 'package:chess/human_player.dart';
 import 'package:chess/src/app_data_store.dart';
+import 'package:chess/src/games_list_notifier.dart';
 import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +8,7 @@ import 'chess_board.dart';
 
 import 'game.dart';
 import 'player.dart';
+import 'src/app_state_data.dart';
 import 'src/server_config.dart';
 
 typedef ModelGetter = Game Function();
@@ -33,12 +34,10 @@ class _MainWidgetState extends State<MainWidget> {
 
   ModelGetter? getGame;
 
-  Game? game;
+
   ServerConfig? serverConfig;
 
-  void setGame(Game? g) {
-    this.game = g;
-  }
+
 
   void setServerConfig(ServerConfig? serverConfig) {
     this.serverConfig = serverConfig;
@@ -155,18 +154,18 @@ class _MainWidgetState extends State<MainWidget> {
             )),
         Padding(
             padding: EdgeInsets.all(5.0),
-            //        child: GameListWidget(setGame, setServerConfig)),
+            
             child: ChangeNotifierProvider.value(
                 value: AppDataStore.getInstance().gamesList,
-                child: GameListWidget( setGame/*, setServerConfig */))),
+                child: GameListWidget())),
         Padding(
             padding: EdgeInsets.all(5.0),
             child: ElevatedButton(
                 style: style,
                 onPressed: () {
-                  Game? g;
-                  if (null != this.game) {
-                    g = game;
+                  Game? g = AppStateData.getInstance().currentGame;
+                  if (null != g) {
+                    //
                   } else if (null != player1Name && null != player2Name) {
                     Player player1;
                     Player player2;
@@ -185,8 +184,13 @@ class _MainWidgetState extends State<MainWidget> {
                       player2 = Humanplayer("Humanplayer", player2Name,
                           !player1White, !player1White);
                     }
-                    // g = Game(player1Name!, player2Name!, ChessBoard.startPosFEN);
+
                     g = Game(player1, player2, ChessBoard.startPosFEN);
+                    GamesListNotifier gln =
+                        AppDataStore.getInstance().gamesList;
+                        g.selected = true;
+                    gln.addGame(g);
+                    setState( (){});
                   } else {
                     return;
                   }
@@ -199,9 +203,8 @@ class _MainWidgetState extends State<MainWidget> {
 }
 
 class GameListWidget extends StatefulWidget {
-  ModelSetter setModel;
 
-  GameListWidget( this.setModel);
+  GameListWidget();
   @override
   State<StatefulWidget> createState() {
     GameListWidgetState glws = GameListWidgetState();
@@ -210,7 +213,6 @@ class GameListWidget extends StatefulWidget {
 }
 
 class GameListWidgetState extends State<StatefulWidget> {
-
   int gameIndex = -1;
 
   Game? getGame() {
@@ -224,18 +226,29 @@ class GameListWidgetState extends State<StatefulWidget> {
 
   GameListWidgetState() {
     AppDataStore ads = AppDataStore.getInstance();
-
     serverConfig = ads.serverConfig;
-
-    //GameListWidget glw = this.widget as GameListWidget;
-    //glw.setServerConfig(serverConfig);
-   // setState(() {});
   }
-
 
   ServerConfig? serverConfig;
 
   int selectedIndex = -1;
+
+  void selectSingleGame(int index){
+    List<Game>? games = AppDataStore.getInstance().gamesList.games;
+    bool selected = false;
+    for(int i = 0; i < games.length ; i++){
+      if (i == index){
+         games[i].selected = true;
+         selected = true;
+         AppStateData.getInstance().currentGame = games[i];
+      }else{
+        games[i].selected = false;
+      }
+    }
+    if(!selected){
+      AppStateData.getInstance().currentGame = null;
+    }
+  }
 
   DataTable gamesWidgets() {
     List<DataRow> rows = List.empty(growable: true);
@@ -246,7 +259,7 @@ class GameListWidgetState extends State<StatefulWidget> {
       DataColumn(label: Text("Time")),
     ];
 
-    //rows.add(row);
+   
     if (!AppDataStore.getInstance().gamesList.gamesListLoaded) {
       DataTable table = DataTable(columns: cols, rows: rows);
 
@@ -257,56 +270,35 @@ class GameListWidgetState extends State<StatefulWidget> {
       DataRow row = DataRow(
           key: UniqueKey(),
           color: WidgetStateColor.resolveWith((states) {
-
-            if (i == selectedIndex) {
+            if (games[i].selected) {
               return Colors.lightGreenAccent.shade100;
             } else {
               return Colors.lightBlueAccent.shade100;
             }
           }),
+          selected: games[i].selected,
           onSelectChanged: (value) {
             GameListWidget glw = this.widget as GameListWidget;
             setState(() {
               if (!value!) {
                 selectedIndex = -1;
                 gameIndex = -1;
-                // game = null;
-                glw.setModel(games[i]);
+                selectSingleGame(-1);
                 return;
               }
               selectedIndex = i;
               gameIndex = i;
 
-              glw.setModel(games[i]);
+              selectSingleGame(i);
             });
-
-           
           },
           cells: [
             DataCell(Text(key: UniqueKey(), games[i].player1.name),
-                onDoubleTap: () {
-              gameIndex = i;
-              GameListWidget glw = this.widget as GameListWidget;
-              setState(() {
-                if (-1 == selectedIndex) {
-                  selectedIndex = i;
-                } else {
-                  selectedIndex = -1;
-                }
-              });
-
-              glw.setModel(games[i]);
-            }),
-            DataCell(Text(games[i].player2.name), onDoubleTap: () {
-              gameIndex = i;
-              GameListWidget glw = this.widget as GameListWidget;
-              glw.setModel(games[i]);
-            }),
-            DataCell(Text(games[i].dateTime.toString()), onDoubleTap: () {
-              gameIndex = i;
-              GameListWidget glw = this.widget as GameListWidget;
-              glw.setModel(games[i]);
-            })
+            ),
+            DataCell(Text(games[i].player2.name),
+            ),
+            DataCell(Text(games[i].dateTime.toString()),
+            )
           ]);
 
       rows.add(row);

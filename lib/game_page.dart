@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:chess/human_player.dart';
@@ -40,8 +41,14 @@ class ChessWidgetState extends State<ChessPage> {
     });
   }
 
+  @override
+  void dispose() {
+    // TODO other clean needed?
+    super.dispose();
+  }
+
   void makeFirstMove() {
-    if (game.player1 is UCIClient && game.player1.isTurn) { // TODO play on turn?
+    if (game.player1 is UCIClient && game.player1.isTurn) {
       UCIClient p = game.player1 as UCIClient;
       p.setFEN(game.fen);
       p.play();
@@ -135,12 +142,27 @@ class GridWidgetState extends State<GridWidget> {
     }
   }
 
+  bool resourcesInitiatlized = false;
   GridWidgetState() {
+    initResources();
+  }
+  late StreamSubscription<Move> subscription1;
+
+  late StreamSubscription<Move> subscription2;
+
+  initResources() {
+    if (resourcesInitiatlized) {
+      return;
+    }
     ChessPage cp = chessPageKey?.currentWidget as ChessPage;
 
     Game g = cp.game;
     setChessBoard(g);
-    g.player1.stream.listen((onData) {
+
+    g.player1.resetStreamIfClosed();
+    g.player2.resetStreamIfClosed();
+
+    subscription1 = g.player1.stream.listen((onData) {
       setState(() {
         MoveSteps ms = moveStep(onData);
         if (ms == MoveSteps.moved) {
@@ -148,9 +170,11 @@ class GridWidgetState extends State<GridWidget> {
           g.player2.play();
         }
       });
+    }, onDone: () {
+      // TODO Any cleanup?
     });
 
-    g.player2.stream.listen((onData) {
+    subscription2 = g.player2.stream.listen((onData) {
       setState(() {
         MoveSteps ms = moveStep(onData);
         if (ms == MoveSteps.moved) {
@@ -158,7 +182,27 @@ class GridWidgetState extends State<GridWidget> {
           g.player1.play();
         }
       });
+    }, onDone: () {
+      // TODO any cleanup?
     });
+    resourcesInitiatlized = true;
+  }
+
+  @override
+  void dispose() {
+    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
+
+    Game g = cp.game;
+    // Dispose the StreamController
+    g.player1.close();
+    g.player2.close();
+
+    // Cancel the StreamSubscription
+    subscription1.cancel();
+    subscription2.cancel();
+    // Call the super.dispose()
+    resourcesInitiatlized = false;
+    super.dispose();
   }
 
   void changeTurn(Game g) {
@@ -200,6 +244,7 @@ class GridWidgetState extends State<GridWidget> {
 
   @override
   Widget build(BuildContext context) {
+    initResources();
     return GestureDetector(
         key: gestureDetectorKey,
         onDoubleTapDown: (details) {

@@ -12,6 +12,16 @@ class Game{
   final Player player2;
   late DateTime dateTime;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool _selected = false;
+
+  bool get selected => _selected;
+
+  set selected(bool value) {
+    _selected = value;
+  }
+
+
   late String fen;
 
   Game(this.player1,this.player2,this.fen){dateTime = DateTime.now();} 

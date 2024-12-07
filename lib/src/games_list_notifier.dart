@@ -19,5 +19,9 @@ class GamesListNotifier with ChangeNotifier {
     notifyListeners();
   }
 
+  void addGame(Game game){
+    _games.add(game);
+    notifyListeners();
+  }
   
 }

@@ -18,13 +18,7 @@ class AppDataStore {
     _serverConfig = value;
   }
 
- // List<Game>? _games;
 
- // List<Game>? get games => _games;
-
- // set games(List<Game>? value) {
-//    _games = value;
-//  }
   
   GamesListNotifier gamesList = GamesListNotifier();
 
