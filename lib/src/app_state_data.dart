@@ -13,7 +13,7 @@ class AppStateData{
   }
 
 
-  late Game? _currentGame;
+  Game? _currentGame;
 
   Game? get currentGame => _currentGame;
 
