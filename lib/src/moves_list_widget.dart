@@ -90,7 +90,7 @@ class MovesListWidgetState extends State<StatefulWidget> {
     int fullMoveCount = game!.moves!.length - game!.moves!.length % 2;
 
     int cellsPerRow = 2;
-    for (int i = 0; i < fullMoveCount; i += cellsPerRow) {
+    for (int i = 0; i < fullMoveCount; i += cellsPerRow*2) {
       List<String> rowValues = this.getRowValues(game.moves, i, cellsPerRow);
 
       DataRow row = DataRow(

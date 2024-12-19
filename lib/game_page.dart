@@ -52,6 +52,8 @@ class ChessWidgetState extends State<ChessPage> {
   StreamSubscription<Move>? subscription2;
 
   bool resourcesInitiatlized = false;
+
+  late Move lastHalfMove;
   initResources() {
     if (resourcesInitiatlized) {
       return;
@@ -74,12 +76,16 @@ class ChessWidgetState extends State<ChessPage> {
       gws.setState(() {
         MoveSteps ms = gws.moveStep(onData);
         if (ms == MoveSteps.moved) {
+          
+          g.moves.add(lastHalfMove);
           g.moves.add(onData);
           if (g.moves.length > 0 && g.moves.length % 2 == 0) {
             mlws.setState(() {});
           }
           gws.changeTurn(g);
           g.player2.play();
+        }else{
+          lastHalfMove = onData;
         }
       });
     }, onDone: () {
@@ -90,6 +96,7 @@ class ChessWidgetState extends State<ChessPage> {
       gws.setState(() {
         MoveSteps ms = gws.moveStep(onData);
         if (ms == MoveSteps.moved) {
+          g.moves.add(lastHalfMove);
           g.moves.add(onData);
           if (g.moves.length > 0 && g.moves.length % 2 == 0) {
             mlws.setState(() {});
@@ -97,6 +104,8 @@ class ChessWidgetState extends State<ChessPage> {
 
           gws.changeTurn(g);
           g.player1.play();
+        }else{
+          lastHalfMove = onData;
         }
       });
     }, onDone: () {
