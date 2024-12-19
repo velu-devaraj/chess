@@ -5,7 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'player.dart';
 import 'move.dart';
 
-part '../game.g.dart'; 
+part 'game.g.dart'; 
 
 @JsonSerializable(explicitToJson: true)
 class Game{

@@ -1,7 +1,7 @@
 import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
-part '../src/server_config.g.dart';
+part 'server_config.g.dart';
 
 class PropertyKeys {
   static final String uciServerScheme = "uci.server.scheme";

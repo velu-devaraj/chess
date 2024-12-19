@@ -12,7 +12,7 @@ import '../src/com/uci/api/command_response.dart';
 import '../src/com/uci/api/moves_api.dart';
 import '../src/com/uci/api/command.dart';
 import 'package:dio/dio.dart';
-part '../uci_client.g.dart';
+part 'uci_client.g.dart';
 
 @JsonSerializable()
 class UCIClient extends Player {
