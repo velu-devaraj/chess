@@ -2,7 +2,7 @@ import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
 
-part 'move.g.dart'; 
+part '../move.g.dart'; 
 
 @JsonSerializable(explicitToJson: true)
 class Move {

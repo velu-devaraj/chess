@@ -2,7 +2,7 @@ import "dart:async";
 import "dart:ui" as ui;
 import 'package:image/image.dart' as img;
 
-import "chess_board.dart";
+import "models/chess_board.dart";
 import 'package:flutter/services.dart';
 
 class Pieceimages {

@@ -1,18 +1,18 @@
-import 'package:chess/chess_board.dart';
-import 'package:chess/src/server_config.dart';
+import 'package:chess/models/chess_board.dart';
+import 'package:chess/models/server_config.dart';
 
 import 'player.dart';
 import 'move.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'src/api.dart';
-import 'src/app_data_store.dart';
-import 'src/com/uci/api/command_response.dart';
+import '../src/api.dart';
+import 'app_data_store.dart';
+import '../src/com/uci/api/command_response.dart';
 //import 'src/com/uci/api/move.dart.bak';
-import 'src/com/uci/api/moves_api.dart';
-import 'src/com/uci/api/command.dart';
+import '../src/com/uci/api/moves_api.dart';
+import '../src/com/uci/api/command.dart';
 import 'package:dio/dio.dart';
-part 'uci_client.g.dart';
+part '../uci_client.g.dart';
 
 @JsonSerializable()
 class UCIClient extends Player {

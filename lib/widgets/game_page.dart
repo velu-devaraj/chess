@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
-import 'package:chess/human_player.dart';
-import 'package:chess/src/app_data_store.dart';
-import 'package:chess/src/moves_list_widget.dart';
-import 'package:chess/uci_client.dart';
+import 'package:chess/models/human_player.dart';
+import 'package:chess/models/app_data_store.dart';
+import 'package:chess/widgets/moves_list_widget.dart';
+import 'package:chess/models/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'piece_images.dart';
-import 'chess_board.dart';
-import 'game.dart';
-import 'move.dart';
+import '../piece_images.dart';
+import '../models/chess_board.dart';
+import '../models/game.dart';
+import '../models/move.dart';
 //import 'src/com/uci/api/move.dart.bak';
 
 const double rSize = 40.0;

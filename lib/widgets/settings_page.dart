@@ -1,8 +1,8 @@
-import 'package:chess/src/server_config.dart';
+import 'package:chess/models/server_config.dart';
 import 'package:flutter/material.dart';
 
-import 'app_data_store.dart';
-import 'button_styles.dart';
+import '../models/app_data_store.dart';
+import '../src/button_styles.dart';
 
 GlobalKey? settingsPageKey;
 

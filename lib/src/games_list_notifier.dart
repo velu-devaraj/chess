@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../game.dart';
+import '../models/game.dart';
 
 class GamesListNotifier with ChangeNotifier {
   late List<Game> _games;

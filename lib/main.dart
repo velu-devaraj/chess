@@ -1,9 +1,9 @@
-import 'package:chess/src/app_data_store.dart';
-import 'package:chess/src/server_config.dart';
+import 'package:chess/models/app_data_store.dart';
+import 'package:chess/models/server_config.dart';
 import 'package:flutter/material.dart';
 
 import 'game_router.dart';
-import 'main_page.dart';
+import 'widgets/main_page.dart';
 import 'piece_images.dart';
 
 void main() => runApp(MyApp());

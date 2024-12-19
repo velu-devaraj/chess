@@ -1,7 +1,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/move.dart';
+import '../lib/models/move.dart';
 
 void main() {
   Move m = Move();

@@ -4,9 +4,9 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../game.dart';
+import 'game.dart';
 import 'server_config.dart';
-import 'games_list_notifier.dart';
+import '../src/games_list_notifier.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class AppDataStore {

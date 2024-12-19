@@ -1,4 +1,4 @@
-import 'src/lookups.dart';
+import 'lookups.dart';
 
 class BoardExternalState {
   bool whiteKingMoved = false;

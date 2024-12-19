@@ -1,15 +1,15 @@
-import 'package:chess/human_player.dart';
-import 'package:chess/src/app_data_store.dart';
+import 'package:chess/models/human_player.dart';
+import 'package:chess/models/app_data_store.dart';
 import 'package:chess/src/games_list_notifier.dart';
-import 'package:chess/uci_client.dart';
+import 'package:chess/models/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'chess_board.dart';
+import '../models/chess_board.dart';
 
-import 'game.dart';
-import 'player.dart';
-import 'src/app_state_data.dart';
-import 'src/server_config.dart';
+import '../models/game.dart';
+import '../models/player.dart';
+import '../models/app_state_data.dart';
+import '../models/server_config.dart';
 
 typedef ModelGetter = Game Function();
 typedef ModelSetter = void Function(Game? g);

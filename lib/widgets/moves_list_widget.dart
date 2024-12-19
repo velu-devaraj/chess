@@ -1,10 +1,10 @@
-import 'package:chess/src/app_data_store.dart';
-import 'package:chess/src/lookups.dart';
+import 'package:chess/models/app_data_store.dart';
+import 'package:chess/models/lookups.dart';
 import 'package:flutter/material.dart';
 
-import '../game.dart';
-import '../move.dart';
-import '../game_page.dart';
+import '../models/game.dart';
+import '../models/move.dart';
+import 'game_page.dart';
 
 class MovesListWidget extends StatefulWidget {
   MovesListWidget({super.key}) {

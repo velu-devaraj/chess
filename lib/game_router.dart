@@ -1,7 +1,8 @@
-import 'package:chess/src/settings_page.dart';
+
 import 'package:flutter/material.dart';
-import 'game_page.dart';
-import 'main_page.dart';
+import 'widgets/game_page.dart';
+import 'widgets/main_page.dart';
+import 'widgets/settings_page.dart';
 
 class GameRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {

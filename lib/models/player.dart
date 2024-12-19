@@ -5,7 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'human_player.dart';
 import 'uci_client.dart';
 import 'move.dart';
-part 'player.g.dart';
+part '../player.g.dart';
 
 @JsonSerializable()
 class Player {

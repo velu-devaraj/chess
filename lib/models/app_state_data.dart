@@ -1,4 +1,4 @@
-import '../game.dart';
+import 'game.dart';
 
 class AppStateData {
   static AppStateData? appStateData;
