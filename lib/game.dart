@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'player.dart';
+import 'move.dart';
 
 part 'game.g.dart'; 
 
@@ -21,10 +22,12 @@ class Game{
     _selected = value;
   }
 
-
+  late String startFen;
   late String fen;
 
-  Game(this.player1,this.player2,this.fen){dateTime = DateTime.now();} 
+  List<Move> moves = List.empty(growable: true);
+
+  Game(this.player1,this.player2,this.fen){dateTime = DateTime.now(); startFen = fen;} 
 
 
   factory Game.fromJson(Map<String, dynamic> json) => _$GameFromJson(json);

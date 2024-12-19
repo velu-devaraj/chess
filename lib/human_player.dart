@@ -5,8 +5,8 @@ part 'human_player.g.dart';
 
 @JsonSerializable()
 class Humanplayer extends Player {
-  Humanplayer(type, name, playingWhite, isTurn)
-      : super(type, name, playingWhite, isTurn);
+  Humanplayer(type, name, playingWhite, isTurn, index)
+      : super(type, name, playingWhite, isTurn, index);
 
   @override
   void saveGame() {

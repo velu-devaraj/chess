@@ -172,17 +172,17 @@ class _MainWidgetState extends State<MainWidget> {
 
                     if (isEngine1) {
                       player1 = UCIClient(
-                          "UCIClient", player1Name, player1White, player1White);
+                          "UCIClient", player1Name, player1White, player1White,1);
                     } else {
                       player1 = Humanplayer("Humanplayer", player1Name,
-                          player1White, player1White);
+                          player1White, player1White,1);
                     }
                     if (isEngine2) {
                       player2 = UCIClient("UCIClient", player2Name,
-                          !player1White, !player1White);
+                          !player1White, !player1White,2);
                     } else {
                       player2 = Humanplayer("Humanplayer", player2Name,
-                          !player1White, !player1White);
+                          !player1White, !player1White,2);
                     }
 
                     g = Game(player1, player2, ChessBoard.startPosFEN);

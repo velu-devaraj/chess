@@ -1,3 +1,5 @@
+import 'src/lookups.dart';
+
 class BoardExternalState {
   bool whiteKingMoved = false;
   bool blackKingMoved = false;
@@ -284,7 +286,6 @@ class ChessBoard {
     "k"
   ];
 
-  List<String> columnCode = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
   String toFEN() {
     StringBuffer sb = StringBuffer();
@@ -340,7 +341,7 @@ class ChessBoard {
     sb.write(" ");
     if (boardExternalState.enPassantCaptureSquare != null) {
       sb.write(boardExternalState.enPassantCaptureSquare!.$1);
-      sb.write(columnCode[boardExternalState.enPassantCaptureSquare!.$2]);
+      sb.write(Lookups.columnCode[boardExternalState.enPassantCaptureSquare!.$2]);
     } else {
       sb.write("-");
     }

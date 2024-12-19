@@ -2,13 +2,13 @@ import 'package:chess/chess_board.dart';
 import 'package:chess/src/server_config.dart';
 
 import 'player.dart';
-
+import 'move.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'src/api.dart';
 import 'src/app_data_store.dart';
 import 'src/com/uci/api/command_response.dart';
-import 'src/com/uci/api/move.dart';
+//import 'src/com/uci/api/move.dart.bak';
 import 'src/com/uci/api/moves_api.dart';
 import 'src/com/uci/api/command.dart';
 import 'package:dio/dio.dart';
@@ -21,8 +21,8 @@ class UCIClient extends Player {
   @JsonKey(includeFromJson: false, includeToJson: false)
   bool initialized = false;
 
-  UCIClient(type, name, playingWhite, isTurn)
-      : super(type, name, playingWhite, isTurn) {
+  UCIClient(type, name, playingWhite, isTurn, index)
+      : super(type, name, playingWhite, isTurn, index) {
         initialize();
       }
 
@@ -147,6 +147,8 @@ class UCIClient extends Player {
         int col = letterToColumn(splits[1][0]) - 1;
 
         move1.square = (row, col);
+        move1.playerIndex = index;
+ //       move1.promotoinPiece = -1;
         row = int.parse(splits[1][3]) - 1;
         col = letterToColumn(splits[1][2]) - 1;
 
@@ -161,7 +163,8 @@ class UCIClient extends Player {
           }
         }
         move2.square = (row, col);
-
+        move2.playerIndex = index;
+ //       move2.promotoinPiece = -1;
         return moves;
       }
     }

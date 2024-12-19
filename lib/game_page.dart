@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:chess/human_player.dart';
 import 'package:chess/src/app_data_store.dart';
+import 'package:chess/src/moves_list_widget.dart';
 import 'package:chess/uci_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,10 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'piece_images.dart';
 import 'chess_board.dart';
 import 'game.dart';
-import 'src/com/uci/api/move.dart';
+import 'move.dart';
+//import 'src/com/uci/api/move.dart.bak';
 
 const double rSize = 40.0;
 GlobalKey? chessPageKey;
+GlobalKey? gameWidgetKey;
+GlobalKey? movesListWidgetKey;
 
 class ChessPage extends StatefulWidget {
   dynamic game;
@@ -36,14 +40,88 @@ class ChessWidgetState extends State<ChessPage> {
   void initState() {
     super.initState();
 
+    //  initResources();
+
     SchedulerBinding.instance.addPostFrameCallback((_) {
+      initResources();
       makeFirstMove();
     });
   }
 
+  StreamSubscription<Move>? subscription1;
+  StreamSubscription<Move>? subscription2;
+
+  bool resourcesInitiatlized = false;
+  initResources() {
+    if (resourcesInitiatlized) {
+      return;
+    }
+    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
+
+    Game g = cp.game;
+    if (null == gameWidgetKey!.currentState!) {
+      return;
+    }
+    GridWidgetState gws = (gameWidgetKey!.currentState! as GridWidgetState);
+    MovesListWidgetState mlws =
+        (movesListWidgetKey!.currentState! as MovesListWidgetState);
+
+    gws.setChessBoard(g);
+    g.player1.resetStream();
+    g.player2.resetStream();
+
+    subscription1 = g.player1.stream.listen((onData) {
+      gws.setState(() {
+        MoveSteps ms = gws.moveStep(onData);
+        if (ms == MoveSteps.moved) {
+          g.moves.add(onData);
+          if (g.moves.length > 0 && g.moves.length % 2 == 0) {
+            mlws.setState(() {});
+          }
+          gws.changeTurn(g);
+          g.player2.play();
+        }
+      });
+    }, onDone: () {
+      // TODO Any cleanup?
+    });
+
+    subscription2 = g.player2.stream.listen((onData) {
+      gws.setState(() {
+        MoveSteps ms = gws.moveStep(onData);
+        if (ms == MoveSteps.moved) {
+          g.moves.add(onData);
+          if (g.moves.length > 0 && g.moves.length % 2 == 0) {
+            mlws.setState(() {});
+          }
+
+          gws.changeTurn(g);
+          g.player1.play();
+        }
+      });
+    }, onDone: () {
+      // TODO any cleanup?
+    });
+    resourcesInitiatlized = true;
+  }
+
   @override
   void dispose() {
-    // TODO other clean needed?
+    AppDataStore ads = AppDataStore.getInstance();
+
+    /*
+    if (null != ads.currentGame) {
+      Game? g = ads.currentGame;
+      // Dispose the StreamController
+      g!.player1.close();
+      g.player2.close();
+    }
+*/
+    // Cancel the StreamSubscription
+    subscription1!.cancel();
+    subscription2!.cancel();
+    // Call the super.dispose()
+    resourcesInitiatlized = false;
     super.dispose();
   }
 
@@ -63,22 +141,39 @@ class ChessWidgetState extends State<ChessPage> {
 
   @override
   Widget build(BuildContext context) {
+    GridWidget gw = GridWidget(key: GlobalKey());
+    MovesListWidget mlw = MovesListWidget(key: GlobalKey());
+
     return Scaffold(
-        appBar: AppBar(
-          title: Text("${game.player1.name} vs ${game.player2.name}"),
-        ),
-        body: Center(
-          child: SizedBox(
-            width: 600,
-            height: 600,
-            child: GridWidget(key: GlobalKey()),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(40.0), // Set the height here
+          child: AppBar(
+            title: Text("${game.player1.name} vs ${game.player2.name}"),
           ),
+        ),
+        body: Column(
+          children: [
+            SizedBox(
+              width: 8 * 40 + 5,
+              height: 8 * 40 + 10,
+              child: gw, // GridWidget(key: GlobalKey()),
+            ),
+            Expanded(
+                //   width: 8 * 40 + 5,
+                //   height: 6 * 40 + 10,
+                child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: mlw, //MovesListWidget(key: GlobalKey())),
+            )),
+          ],
         ));
   }
 }
 
 class GridWidget extends StatefulWidget {
-  const GridWidget({super.key});
+  GridWidget({super.key}) {
+    gameWidgetKey = key as GlobalKey;
+  }
 
   @override
   // ignore: no_logic_in_create_state
@@ -144,64 +239,14 @@ class GridWidgetState extends State<GridWidget> {
 
   bool resourcesInitiatlized = false;
   GridWidgetState() {
-    initResources();
+    // initResources();
   }
   late StreamSubscription<Move> subscription1;
 
   late StreamSubscription<Move> subscription2;
 
-  initResources() {
-    if (resourcesInitiatlized) {
-      return;
-    }
-    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
-
-    Game g = cp.game;
-    setChessBoard(g);
-
-    g.player1.resetStreamIfClosed();
-    g.player2.resetStreamIfClosed();
-
-    subscription1 = g.player1.stream.listen((onData) {
-      setState(() {
-        MoveSteps ms = moveStep(onData);
-        if (ms == MoveSteps.moved) {
-          changeTurn(g);
-          g.player2.play();
-        }
-      });
-    }, onDone: () {
-      // TODO Any cleanup?
-    });
-
-    subscription2 = g.player2.stream.listen((onData) {
-      setState(() {
-        MoveSteps ms = moveStep(onData);
-        if (ms == MoveSteps.moved) {
-          changeTurn(g);
-          g.player1.play();
-        }
-      });
-    }, onDone: () {
-      // TODO any cleanup?
-    });
-    resourcesInitiatlized = true;
-  }
-
   @override
   void dispose() {
-    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
-
-    Game g = cp.game;
-    // Dispose the StreamController
-    g.player1.close();
-    g.player2.close();
-
-    // Cancel the StreamSubscription
-    subscription1.cancel();
-    subscription2.cancel();
-    // Call the super.dispose()
-    resourcesInitiatlized = false;
     super.dispose();
   }
 
@@ -244,7 +289,7 @@ class GridWidgetState extends State<GridWidget> {
 
   @override
   Widget build(BuildContext context) {
-    initResources();
+    //  initResources(); // TODO call from parent?
     return GestureDetector(
         key: gestureDetectorKey,
         onDoubleTapDown: (details) {

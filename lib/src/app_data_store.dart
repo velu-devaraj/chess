@@ -24,6 +24,8 @@ class AppDataStore {
 
   static AppDataStore? appDataStore;
 
+  Game? get currentGame => null;
+
   static AppDataStore getInstance() {
     if (null == appDataStore) {
       appDataStore = AppDataStore();
