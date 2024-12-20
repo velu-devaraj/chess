@@ -189,12 +189,13 @@ class _MainWidgetState extends State<MainWidget> {
                     GamesListNotifier gln =
                         AppDataStore.getInstance().gamesList;
                         g.selected = true;
+                        AppStateData.getInstance().currentGame = g;
                     gln.addGame(g);
                     setState( (){});
                   } else {
                     return;
                   }
-                  Navigator.pushNamed(context, "/game", arguments: g);
+                  Navigator.pushNamed(context, "/game");
                 },
                 child: const Text("Start")))
       ]),

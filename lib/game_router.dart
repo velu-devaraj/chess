@@ -11,7 +11,7 @@ class GameRouter {
         return MaterialPageRoute(builder: (_) => MainWidget());
       case '/game':
         return MaterialPageRoute(
-            builder: (_) => ChessPage(settings.arguments, key: GlobalKey()));
+            builder: (_) => ChessPage(key: GlobalKey()));
       case '/settings':
         return MaterialPageRoute(
             builder: (_) => SettingsPage(key: GlobalKey()));

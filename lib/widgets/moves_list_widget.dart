@@ -2,9 +2,11 @@ import 'package:chess/models/app_data_store.dart';
 import 'package:chess/models/lookups.dart';
 import 'package:flutter/material.dart';
 
+import '../models/app_state_data.dart';
 import '../models/game.dart';
 import '../models/move.dart';
 import 'game_page.dart';
+import 'widget_keys.dart';
 
 class MovesListWidget extends StatefulWidget {
   MovesListWidget({super.key}) {
@@ -47,7 +49,7 @@ class MovesListWidgetState extends State<StatefulWidget> {
           (moves[rowIndex].square.$1 + 1).toString() +
           Lookups.columnCode[moves[rowIndex + 1].square.$2] +
           (moves[rowIndex + 1].square.$1 + 1).toString();
-      values[i] = fullMove;
+      values[i] =  fullMove;
       rowIndex += 2;
     }
     return values;
@@ -58,9 +60,10 @@ class MovesListWidgetState extends State<StatefulWidget> {
 
     for (int i = 0; i < rowValues.length; i++) {
       DataCell dataCell = DataCell(
-        SizedBox(
+        Container(
           height: 25,
-          child: Text(rowValues[i]),
+           width: 35,
+          child: Text(textWidthBasis: TextWidthBasis.longestLine, rowValues[i]),
         ),
       );
 
@@ -72,25 +75,36 @@ class MovesListWidgetState extends State<StatefulWidget> {
 
   DataTable movesWidget() {
     List<DataRow> rows = List.empty(growable: true);
+    int cellsPerRow = 6;
+    List<DataColumn> cols = List.filled(cellsPerRow,  DataColumn(label: Text("")));
 
-    List<DataColumn> cols = [
-      DataColumn(label: Text("Player 1")),
-      DataColumn(label: Text("Player 2")),
+    /*
+    [
+      DataColumn(label: Text("1")),
+      DataColumn(label: Text("2")),
+      DataColumn(label: Text("1")),
+      DataColumn(label: Text("2")),
+      DataColumn(label: Text("1")),
+      DataColumn(label: Text("2")),
+
+      //   DataColumn(label: Text("moves")),
     ];
-
+*/
     if (!AppDataStore.getInstance().gamesList.gamesListLoaded) {
+      //DataTable table = DataTable(columns: cols, rows: rows);
       DataTable table = DataTable(columns: cols, rows: rows);
 
       return table;
     }
 
-    ChessPage cp = chessPageKey?.currentWidget as ChessPage;
+    //   ChessPage cp = chessPageKey?.currentWidget as ChessPage;
 
-    Game game = cp.game;
+    //  Game game = cp.game;
+    Game? game = AppStateData.getInstance().currentGame;
+
     int fullMoveCount = game!.moves!.length - game!.moves!.length % 2;
 
-    int cellsPerRow = 2;
-    for (int i = 0; i < fullMoveCount; i += cellsPerRow*2) {
+    for (int i = 0; i < fullMoveCount; i += cellsPerRow * 2) {
       List<String> rowValues = this.getRowValues(game.moves, i, cellsPerRow);
 
       DataRow row = DataRow(
@@ -104,6 +118,8 @@ class MovesListWidgetState extends State<StatefulWidget> {
     }
 
     DataTable table = DataTable(
+      headingRowHeight: 0,
+      columnSpacing: 15, // to adjust column width and table width
       showCheckboxColumn: true,
       columns: cols,
       rows: rows,
